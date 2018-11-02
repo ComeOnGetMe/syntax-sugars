@@ -3,10 +3,14 @@ from functools import partial, update_wrapper
 
 
 class BaseTimer(object):
-    def __init__(self):
+    def __init__(self, func=None):
         self._start = 0
         self._started = False
         self._last_lap_end = 0
+        self.func = None
+        if callable(func):
+            self.func = func
+            update_wrapper(self, func)
 
     def _check_started(self):
         assert self._start > 0, 'Need to start first!'
@@ -32,16 +36,7 @@ class BaseTimer(object):
         self._started = False
         self._last_lap_end = 0
 
-
-class Timer(BaseTimer):
-    def __init__(self, func=None):
-        super(Timer, self).__init__()
-        self.func = None
-        if callable(func):
-            self.func = func
-            update_wrapper(self, func)
-
-    # Used for decorator
+    # decorator
     def __call__(self, *args):
         self.start()
         ret = self.func(*args)
@@ -51,7 +46,7 @@ class Timer(BaseTimer):
     def __get__(self, obj, objtype):
         return partial(self.__call__, obj)
 
-    # Used for context manager
+    # context manager
     def __enter__(self):
         self.start()
         return self
@@ -73,18 +68,18 @@ if __name__ == '__main__':
     t.stop("Total: {time}")
 
     """ Context usage """
-    with Timer():
+    with BaseTimer():
         sleep(math.pi * .1)
 
     """ Decorator """
-    @Timer
+    @BaseTimer
     def test():
         sleep(0.12345)
         return
     test()
 
     class A:
-        @Timer
+        @BaseTimer
         def test(self, x):
             sleep(x)
 
