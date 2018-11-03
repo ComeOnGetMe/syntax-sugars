@@ -29,7 +29,7 @@ def profiler(cls):
             totalsq = sum(x ** 2 for x in val)
             print "{}: # of calls {}, mean time {}, variance {}".format(key, N, total/N, totalsq/N - (total/N)**2)
 
-    cls.print_res = print_records
+    cls.print_records = print_records
     return cls
 
 
@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     a = A()
     a.sleep(1)
-    a.print_res()
+    a.print_records()
     b = A()
     b.sleep(2)
-    b.print_res()
+    b.print_records()
