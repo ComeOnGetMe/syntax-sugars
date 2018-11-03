@@ -21,17 +21,14 @@ class Memoized(object):
 
 if __name__ == '__main__':
     from time import sleep
-    from timer import Timer
+    from timer import BaseTimer
 
     @Memoized
     def test(x):
         sleep(.5)
         return x
 
-    t = Timer()
-    t.start()
-    test(1)
-    t.lap("First time: {time}")
-    test(1)
-    t.lap("Second time: {time}")
-    t.stop()
+    with BaseTimer("First time: {time}"):
+        test(1)
+    with BaseTimer("Second time: {time}"):
+        test(1)

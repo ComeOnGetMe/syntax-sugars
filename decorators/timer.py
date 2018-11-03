@@ -3,10 +3,11 @@ from functools import partial, update_wrapper
 
 
 class BaseTimer(object):
-    def __init__(self, func=None):
+    def __init__(self, func=None, print_format='{time}'):
         self._start = 0
         self._started = False
         self._last_lap_end = 0
+        self.print_format = print_format
         self.func = None
         if callable(func):
             self.func = func
@@ -23,16 +24,18 @@ class BaseTimer(object):
             self._started = True
             self._last_lap_end = self._start
 
-    def lap(self, print_format="{time}"):
+    def lap(self, print_format=None):
         lap_end = time.time()
         self._check_started()
-        print(print_format.format(time=lap_end - self._last_lap_end))
+        fmt = print_format if print_format is not None else self.print_format
+        print(fmt.format(time=lap_end - self._last_lap_end))
         self._last_lap_end = lap_end
 
-    def stop(self, print_format="{time}"):
+    def stop(self, print_format=None):
         end = time.time()
         self._check_started()
-        print(print_format.format(time=end - self._start))
+        fmt = print_format if print_format is not None else self.print_format
+        print(fmt.format(time=end - self._start))
         self._started = False
         self._last_lap_end = 0
 
