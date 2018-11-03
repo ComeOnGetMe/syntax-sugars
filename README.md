@@ -1,2 +1,2 @@
-# wheels
-Reenventing wheels in Python
+# Syntax sugars
+Reenventing sugars in Python
