@@ -3,61 +3,49 @@ from collections import defaultdict
 from functools import update_wrapper
 
 
-class Profiler(object):
-    def __init__(self):
-        self.records = defaultdict(list)
-        self.obj = None
+def profiler(cls):
+    cls.__profile_records = defaultdict(list)
+    old_getattr = cls.__getattribute__
 
-    def __call__(self, obj):
-        self.obj = obj
-        update_wrapper(self, obj)
+    def timed_attr(self, item):
+        _item = old_getattr(self, item)
+        if callable(_item):
+            def wrapper(*args, **kwargs):
+                t = time.time()
+                ret = _item(*args, **kwargs)
+                t = time.time() - t
+                cls.__profile_records[item].append(t)
+                return ret
+            update_wrapper(wrapper, _item)
+            return wrapper
+        else:
+            return _item
+    cls.__getattribute__ = timed_attr
 
-    def __getattr__(self, item):
-        def wrapped(*args, **kwargs):
-            t = time.time()
-            ret = getattr(self.obj, item)(*args, **kwargs)
-            t = time.time() - t
-            self.records[item].append(t)
-            return ret
-        return wrapped
+    def print_records(self):
+        for key, val in self.__profile_records.iteritems():
+            N = len(val)
+            total = sum(val)
+            totalsq = sum(x ** 2 for x in val)
+            print "{}: # of calls {}, mean time {}, variance {}".format(key, N, total/N, totalsq/N - (total/N)**2)
 
-    def print_res(self):
-        print self.records
-
-
-def profile(cls):
-    records = defaultdict(list)
-    # old_getattr = getattr(cls, '__getattr__', None)
-
-    def __getattr(self, item):
-        _item = getattr(self, item)
-
-        def wrapped(*args, **kwargs):
-            t = time.time()
-            ret = _item(*args, **kwargs)
-            t = time.time() - t
-            records[item].append(t)
-            return ret
-        return wrapped()
-    cls.__getattr__ = __getattr
-
-    def print_res(*args, **kwargs):
-        print records
-
-    cls.print_res = print_res
+    cls.print_res = print_records
     return cls
 
 
 if __name__ == '__main__':
-    @profile
+    @profiler
     class A(object):
         def __init__(self):
             self.a = 1
 
-        def sleep(self):
-            time.sleep(1)
+        def sleep(self, x):
+            time.sleep(x)
             return 'a'
 
     a = A()
-    a.sleep()
+    a.sleep(1)
     a.print_res()
+    b = A()
+    b.sleep(2)
+    b.print_res()
